@@ -86,67 +86,81 @@ def mutateAdjacent(l):
     i = randrange(N)
     return swap(l, i, 0 if i==N-1 else i+1)
 
-root = list(range(1,N+1))
 
-pool = []
 
-for _ in range(POP*2):
-    pool.append(sample(root, N))
 
-pool.sort(key=lambda _: cost(_))
-pool = pool[0:POP]
+xs = list(map(lambda _: _.x, pts))
+ys = list(map(lambda _: _.y, pts))
+xMin, xMax, yMin, yMax = min(xs), max(xs)+1, min(ys), max(ys)+1
+# (0 19153.0 0 13146.0)
 
-print("Initial pool------------------")
-for sol in pool:
-    print(str(cost(sol)))
-print("-------------------------------")
+# for xDiv in range(60, 80, 1):
+#     for yDiv in range(90, 110, 1):
+xDiv, yDiv = 60, 100
+xSpan, ySpan = (xMax-xMin)/xDiv, (yMax-yMin)/yDiv
+ptsGrid = [[[] for _ in range(yDiv)] for _ in range(xDiv)]
 
-for epoch in range(EPOCHS):
-    # reproduce next generation
-    crossovers = []
-    timer = 0
-    while timer < 1000 and len(crossovers) < POP*RATE_CROSSOVER:
-        timer += 1
-        p1, p2 = sample(pool, 2)
-        crossovers += [crossoverPMX(p1, p2)]
-    # mutate
-    mutants = []
-    timer = 0
-    while timer < 1000 and len(mutants) < POP*RATE_MUTATION:
-        timer += 1
-        p = sample(pool, 1)[0]
-        mutants += [mutateAdjacent(p)]
-    # merge all path pools
-    pool = pool + crossovers + mutants
-    # select only the first POP paths fittest
-    pool.sort(key=lambda _: cost(_))
-    pool = pool[0:POP]
+for idx, pt in enumerate(pts[1:]):
+    i, j = int((pt.x-xMin)/xSpan), int((pt.y-yMin)/ySpan)
+    ptsGrid[i][j] += [idx+1]
 
-    solStr = ""
-    for i in pool[0]: solStr += str(i)+"\n"
-    with open('solution - cost {}.csv'.format(cost(pool[0])), 'w') as solution: solution.write(solStr[:-1])
+sol = []
 
-    # print the best path in current generation
-    print("The fittest cycle in epoch {} costs {}".format(epoch+1, cost(pool[0])))
+for i in range(xDiv):
+    for j in (range(yDiv) if i%2==0 else reversed(range(yDiv))):
+        # print(len(ptsGrid[i][j]), end=" ")
+        sol += ptsGrid[i][j]
+    # print()
+
+print("Cost {} for xDiv {} and yDiv {}".format(cost(sol), xDiv, yDiv))
+
+solStr = ""
+for i in sol: solStr += str(i)+"\n"
+with open('cost {} - {}, {}.csv'.format(int(cost(sol)), xDiv, yDiv), 'w') as solution: solution.write(solStr[:-1])
 
 
 
 
 
+# root = list(range(1,N+1))
 
-# sol = list(range(1,N+1))
-# shuffle(sol)
+# pool = []
 
-# solStr = ""
-# for i in sol: solStr += str(i)+"\n"
+# for _ in range(POP*2):
+#     pool.append(sample(root, N))
 
-# totalDist = 0
-# for i in range(0, N-1):
-#     totalDist += dist(pts[sol[i]], pts[sol[i+1]])
-# totalDist += dist(pts[sol[-1]], pts[sol[1]])
-# print(totalDist)
+# pool.sort(key=lambda _: cost(_))
+# pool = pool[0:POP]
 
-# with open('solution.csv', 'w') as solution: solution.write(solStr[:-1])
+# print("Initial pool------------------")
+# for sol in pool:
+#     print(str(cost(sol)))
+# print("-------------------------------")
 
-# for i in sol: solStr += str(i)+"\n"
-# with open('solution.csv', 'w') as solution: solution.write(solStr[:-1])
+# for epoch in range(EPOCHS):
+#     # reproduce next generation
+#     crossovers = []
+#     timer = 0
+#     while timer < 1000 and len(crossovers) < POP*RATE_CROSSOVER:
+#         timer += 1
+#         p1, p2 = sample(pool, 2)
+#         crossovers += [crossoverPMX(p1, p2)]
+#     # mutate
+#     mutants = []
+#     timer = 0
+#     while timer < 1000 and len(mutants) < POP*RATE_MUTATION:
+#         timer += 1
+#         p = sample(pool, 1)[0]
+#         mutants += [mutateAdjacent(p)]
+#     # merge all path pools
+#     pool = pool + crossovers + mutants
+#     # select only the first POP paths fittest
+#     pool.sort(key=lambda _: cost(_))
+#     pool = pool[0:POP]
+
+#     solStr = ""
+#     for i in pool[0]: solStr += str(i)+"\n"
+#     with open('solution - cost {}.csv'.format(cost(pool[0])), 'w') as solution: solution.write(solStr[:-1])
+
+#     # print the best path in current generation
+#     print("The fittest cycle in epoch {} costs {}".format(epoch+1, cost(pool[0])))
